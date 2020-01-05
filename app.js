@@ -10,7 +10,7 @@ const methodOverride = require('method-override');
 
 const app = express();
 
-// Middleware
+// Links Index files (middleware)
 app.use(bodyParser.json());
 app.use(methodOverride('_method'));
 app.set('view engine', 'ejs');
@@ -21,10 +21,11 @@ const mongoURI = 'mongodb+srv://joeet33:Hockey22@cluster0-cxrw2.mongodb.net/test
 // Create mongo connection
 const conn = mongoose.createConnection(mongoURI);
 
-// Init gfs
+// Init gridfs
 let gfs;
 
 conn.once('open', () => {
+  
   // Init stream
   gfs = Grid(conn.db, mongoose.mongo);
   gfs.collection('uploads');
@@ -51,8 +52,8 @@ const storage = new GridFsStorage({
 });
 const upload = multer({ storage });
 
-// @route GET /
-// @desc Loads form
+// Route GET /
+// Desc Loads form
 app.get('/', (req, res) => {
   gfs.files.find().toArray((err, files) => {
     // Check if files
@@ -74,70 +75,46 @@ app.get('/', (req, res) => {
   });
 });
 
-// @route POST /upload
-// @desc  Uploads file to DB
+// Route POST /upload
+// Desc  Uploads file to DB
 app.post('/upload', upload.single('file'), (req, res) => {
-  // res.json({ file: req.file });
+  // Keeps on index page
   res.redirect('/');
 });
 
-// @route GET /files
-// @desc  Display all files in JSON
+// Route GET /files
+// Desc  Display all files in JSON
 app.get('/files', (req, res) => {
   gfs.files.find().toArray((err, files) => {
-    // Check if files
+    // If no file it will say 'No files exist'
     if (!files || files.length === 0) {
       return res.status(404).json({
         err: 'No files exist'
       });
     }
 
-    // Files exist
+    // If files exist
     return res.json(files);
   });
 });
 
-// @route GET /files/:filename
-// @desc  Display single file object
+// Route GET /files/:filename
+// Desc  Display single file object
 app.get('/files/:filename', (req, res) => {
   gfs.files.findOne({ filename: req.params.filename }, (err, file) => {
-    // Check if file
+    // If no file it will say 'No files exist'
     if (!file || file.length === 0) {
       return res.status(404).json({
         err: 'No file exists'
       });
     }
-    // File exists
+    // If files exist
     return res.json(file);
   });
 });
 
-// @route GET /image/:filename
-// @desc Display Image
-app.get('/image/:filename', (req, res) => {
-  gfs.files.findOne({ filename: req.params.filename }, (err, file) => {
-    // Check if file
-    if (!file || file.length === 0) {
-      return res.status(404).json({
-        err: 'No file exists'
-      });
-    }
-
-    // Check if image
-    if (file.contentType === 'image/jpeg' || file.contentType === 'image/png') {
-      // Read output to browser
-      const readstream = gfs.createReadStream(file.filename);
-      readstream.pipe(res);
-    } else {
-      res.status(404).json({
-        err: 'Not an image'
-      });
-    }
-  });
-});
-
-// @route DELETE /files/:id
-// @desc  Delete file
+// Route DELETE /files/:id
+// Desc  Delete file
 app.delete('/files/:id', (req, res) => {
   gfs.remove({ _id: req.params.id, root: 'uploads' }, (err, gridStore) => {
     if (err) {

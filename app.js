@@ -82,39 +82,8 @@ app.post('/upload', upload.single('file'), (req, res) => {
   res.redirect('/');
 });
 
-// Route GET /files
-// Gives Description of a multiple file
-app.get('/files', (req, res) => {
-  gfs.files.find().toArray((err, files) => {
-    // If no file it will say 'No files exist'
-    if (!files || files.length === 0) {
-      return res.status(404).json({
-        err: 'No files exist'
-      });
-    }
-
-    // If files exist
-    return res.json(files);
-  });
-});
-
-// Route GET /files/:filename
-// Gives Description of a single file
-app.get('/files/:filename', (req, res) => {
-  gfs.files.findOne({ filename: req.params.filename }, (err, file) => {
-    // If no file it will say 'No files exist'
-    if (!file || file.length === 0) {
-      return res.status(404).json({
-        err: 'No file exists'
-      });
-    }
-    // If files exist
-    return res.json(file);
-  });
-});
-
-// @route GET /image/:filename
-// @desc Display Image
+// Route GET /image/:filename
+// Display Image
 app.get('/image/:filename', (req, res) => {
   gfs.files.findOne({ filename: req.params.filename }, (err, file) => {
     // Check if file
@@ -137,8 +106,8 @@ app.get('/image/:filename', (req, res) => {
   });
 });
 
-// @route DELETE /files/:id
-// @desc  Delete file
+// Route DELETE /files/:id
+// Desc  Delete file
 app.delete('/files/:id', (req, res) => {
   gfs.remove({ _id: req.params.id, root: 'uploads' }, (err, gridStore) => {
     if (err) {
